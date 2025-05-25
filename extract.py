@@ -15,10 +15,15 @@ def extract_weather_data():
     Extract weather data from OpenWeatherMap API for major cities
     """
     try:
-        # You'll need to set this as a GitHub secret
+        # Get API key from environment variable
         api_key = os.getenv('OPENWEATHER_API_KEY')
+        logger.info("Checking for OpenWeather API key...")
+        
         if not api_key:
-            raise ValueError("OpenWeather API key not found in environment variables")
+            logger.error("OpenWeather API key not found in environment variables")
+            raise ValueError("OpenWeather API key not found in environment variables. Please set the OPENWEATHER_API_KEY environment variable.")
+        
+        logger.info("API key found, proceeding with data extraction")
 
         # List of major cities
         cities = ['London', 'New York', 'Tokyo', 'Paris', 'Sydney']

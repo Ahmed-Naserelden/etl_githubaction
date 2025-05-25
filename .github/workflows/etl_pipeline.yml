@@ -9,6 +9,9 @@ jobs:
   etl:
     runs-on: ubuntu-latest
     
+    env:
+      OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -23,15 +26,15 @@ jobs:
         pip install -r requirements.txt
         
     - name: Run tests
-      env:
-        OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
       run: |
         pytest test_etl.py -v
         
     - name: Run ETL pipeline
-      env:
-        OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
       run: |
+        if [ -z "$OPENWEATHER_API_KEY" ]; then
+          echo "Error: OPENWEATHER_API_KEY is not set"
+          exit 1
+        fi
         python extract.py
         python transform.py
         python load.py
