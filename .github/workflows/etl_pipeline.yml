@@ -37,16 +37,8 @@ jobs:
         ls -la .github/workflows/
         
     - name: Run ETL pipeline
-      env:
-        OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY || 'test_key' }}
       run: |
-        echo "Checking environment variables..."
-        echo "API Key length: ${#OPENWEATHER_API_KEY}"
-        if [ "$OPENWEATHER_API_KEY" = "test_key" ]; then
-          echo "Warning: Using test API key. This is for testing purposes only."
-          echo "For production use, please add your OpenWeather API key as a repository secret."
-        fi
-        echo "Proceeding with ETL pipeline..."
+        echo "Starting ETL pipeline..."
         python extract.py
         python transform.py
         python load.py

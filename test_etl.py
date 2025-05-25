@@ -6,36 +6,20 @@ from transform import transform_weather_data
 from load import load_weather_data
 import pandas as pd
 import os
-from unittest.mock import patch, Mock
 
 def test_api_response():
     """Test the API response status code"""
-    # Create a mock response
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {
-        'main': {
-            'temp': 15.5,
-            'humidity': 75,
-            'pressure': 1013
-        },
-        'weather': [{
-            'description': 'clear sky'
-        }]
+    # Test with London coordinates
+    base_url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        'latitude': 51.5074,
+        'longitude': -0.1278,
+        'current': 'temperature_2m,relative_humidity_2m,pressure_msl,weather_code',
+        'timezone': 'auto'
     }
     
-    # Mock the requests.get method
-    with patch('requests.get', return_value=mock_response):
-        # Test with a sample city
-        base_url = "http://api.openweathermap.org/data/2.5/weather"
-        params = {
-            'q': 'London',
-            'appid': 'test_key',
-            'units': 'metric'
-        }
-        
-        response = requests.get(base_url, params=params)
-        assert response.status_code == 200
+    response = requests.get(base_url, params=params)
+    assert response.status_code == 200
 
 def test_data_transformation():
     """Test the data transformation with sample data"""
@@ -46,7 +30,7 @@ def test_data_transformation():
             'temperature': 15.5,
             'humidity': 75,
             'pressure': 1013,
-            'weather_description': 'clear sky',
+            'weather_description': 'Clear sky',
             'timestamp': datetime.now().isoformat()
         },
         {
@@ -54,7 +38,7 @@ def test_data_transformation():
             'temperature': 18.2,
             'humidity': 80,
             'pressure': 1012,
-            'weather_description': 'scattered clouds',
+            'weather_description': 'Partly cloudy',
             'timestamp': datetime.now().isoformat()
         }
     ]
@@ -80,7 +64,7 @@ def test_data_loading():
         'temperature': [15.5, 18.2],
         'humidity': [75, 80],
         'pressure': [1013, 1012],
-        'weather_description': ['clear sky', 'scattered clouds'],
+        'weather_description': ['Clear sky', 'Partly cloudy'],
         'timestamp': [datetime.now(), datetime.now()]
     })
     

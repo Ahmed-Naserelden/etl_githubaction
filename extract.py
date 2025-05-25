@@ -12,43 +12,74 @@ logger = logging.getLogger(__name__)
 
 def extract_weather_data():
     """
-    Extract weather data from OpenWeatherMap API for major cities
+    Extract weather data from Open-Meteo API for major cities
     """
     try:
-        # Get API key from environment variable
-        api_key = os.getenv('OPENWEATHER_API_KEY')
-        logger.info("Checking for OpenWeather API key...")
+        logger.info("Starting data extraction from Open-Meteo API")
         
-        if not api_key:
-            logger.error("OpenWeather API key not found in environment variables")
-            raise ValueError("OpenWeather API key not found in environment variables. Please set the OPENWEATHER_API_KEY environment variable.")
+        # List of major cities with their coordinates
+        cities = {
+            'London': {'lat': 51.5074, 'lon': -0.1278},
+            'New York': {'lat': 40.7128, 'lon': -74.0060},
+            'Tokyo': {'lat': 35.6762, 'lon': 139.6503},
+            'Paris': {'lat': 48.8566, 'lon': 2.3522},
+            'Sydney': {'lat': -33.8688, 'lon': 151.2093}
+        }
         
-        logger.info("API key found, proceeding with data extraction")
-
-        # List of major cities
-        cities = ['London', 'New York', 'Tokyo', 'Paris', 'Sydney']
-        base_url = "http://api.openweathermap.org/data/2.5/weather"
-        
+        base_url = "https://api.open-meteo.com/v1/forecast"
         weather_data = []
         
-        for city in cities:
+        for city, coords in cities.items():
             logger.info(f"Fetching weather data for {city}")
             params = {
-                'q': city,
-                'appid': api_key,
-                'units': 'metric'  # For Celsius
+                'latitude': coords['lat'],
+                'longitude': coords['lon'],
+                'current': 'temperature_2m,relative_humidity_2m,pressure_msl,weather_code',
+                'timezone': 'auto'
             }
             
             response = requests.get(base_url, params=params)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response.raise_for_status()
             
             data = response.json()
+            current = data['current']
+            
+            # Map weather codes to descriptions
+            weather_codes = {
+                0: 'Clear sky',
+                1: 'Mainly clear',
+                2: 'Partly cloudy',
+                3: 'Overcast',
+                45: 'Foggy',
+                48: 'Depositing rime fog',
+                51: 'Light drizzle',
+                53: 'Moderate drizzle',
+                55: 'Dense drizzle',
+                61: 'Slight rain',
+                63: 'Moderate rain',
+                65: 'Heavy rain',
+                71: 'Slight snow',
+                73: 'Moderate snow',
+                75: 'Heavy snow',
+                77: 'Snow grains',
+                80: 'Slight rain showers',
+                81: 'Moderate rain showers',
+                82: 'Violent rain showers',
+                85: 'Slight snow showers',
+                86: 'Heavy snow showers',
+                95: 'Thunderstorm',
+                96: 'Thunderstorm with slight hail',
+                99: 'Thunderstorm with heavy hail'
+            }
+            
+            weather_description = weather_codes.get(current['weather_code'], 'Unknown')
+            
             weather_data.append({
                 'city': city,
-                'temperature': data['main']['temp'],
-                'humidity': data['main']['humidity'],
-                'pressure': data['main']['pressure'],
-                'weather_description': data['weather'][0]['description'],
+                'temperature': current['temperature_2m'],
+                'humidity': current['relative_humidity_2m'],
+                'pressure': current['pressure_msl'],
+                'weather_description': weather_description,
                 'timestamp': datetime.now().isoformat()
             })
             
