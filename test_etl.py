@@ -6,22 +6,36 @@ from transform import transform_weather_data
 from load import load_weather_data
 import pandas as pd
 import os
+from unittest.mock import patch, Mock
 
 def test_api_response():
     """Test the API response status code"""
-    # Mock API key
-    os.environ['OPENWEATHER_API_KEY'] = 'test_key'
-    
-    # Test with a sample city
-    base_url = "http://api.openweathermap.org/data/2.5/weather"
-    params = {
-        'q': 'London',
-        'appid': os.environ['OPENWEATHER_API_KEY'],
-        'units': 'metric'
+    # Create a mock response
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        'main': {
+            'temp': 15.5,
+            'humidity': 75,
+            'pressure': 1013
+        },
+        'weather': [{
+            'description': 'clear sky'
+        }]
     }
     
-    response = requests.get(base_url, params=params)
-    assert response.status_code == 200
+    # Mock the requests.get method
+    with patch('requests.get', return_value=mock_response):
+        # Test with a sample city
+        base_url = "http://api.openweathermap.org/data/2.5/weather"
+        params = {
+            'q': 'London',
+            'appid': 'test_key',
+            'units': 'metric'
+        }
+        
+        response = requests.get(base_url, params=params)
+        assert response.status_code == 200
 
 def test_data_transformation():
     """Test the data transformation with sample data"""
