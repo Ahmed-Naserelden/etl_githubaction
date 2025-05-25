@@ -9,9 +9,6 @@ jobs:
   etl:
     runs-on: ubuntu-latest
     
-    env:
-      OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-    
     steps:
     - uses: actions/checkout@v3
     
@@ -30,11 +27,17 @@ jobs:
         pytest test_etl.py -v
         
     - name: Run ETL pipeline
+      env:
+        OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
       run: |
+        echo "Checking environment variables..."
         if [ -z "$OPENWEATHER_API_KEY" ]; then
           echo "Error: OPENWEATHER_API_KEY is not set"
+          echo "Please make sure you have added the OPENWEATHER_API_KEY secret in your repository settings"
+          echo "Go to: Settings > Secrets and variables > Actions > New repository secret"
           exit 1
         fi
+        echo "API key is set, proceeding with ETL pipeline..."
         python extract.py
         python transform.py
         python load.py
